@@ -1,20 +1,14 @@
-from django.shortcuts import render
-from .models import Book
-from .models import Library
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Book, Library, UserProfile
 from django.views.generic.detail import DetailView
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login
-from .models import UserProfile
 from django.contrib import messages
-
-
-from django.shortcuts import render, redirect
+from .forms import BookForm, CustomUserCreationForm
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth import login
 from django.urls import reverse_lazy
-from .forms import CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 
 def home_view(request):
@@ -28,12 +22,10 @@ def list_books(request):
     context = {'books': books}
     return render(request, 'relationship_app/list_books.html', context)
 
-
 class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
-
 
 def register_view(request):
     if request.method == 'POST':
@@ -52,7 +44,6 @@ class CustomLoginView(LoginView):
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login')
-
 
 # Utility functions for role checking
 def is_admin(user):
@@ -95,16 +86,16 @@ def assign_role(request, user_id, role):
         if role in valid_roles:
             user_profile.role = role
             user_profile.save()
-            # You might want to add a success message here
+            messages.success(request, f'Role {role} assigned to {user.username} successfully!')
         else:
-            # Handle invalid role
-            pass
+            messages.error(request, 'Invalid role specified!')
             
-        return redirect('admin_view')  # Redirect back to admin view
+        return redirect('admin_view')
         
     except User.DoesNotExist:
-        # Handle user not found
+        messages.error(request, 'User not found!')
         return redirect('admin_view')
+
 def register(request):
     """
     User registration view
@@ -117,8 +108,79 @@ def register(request):
             UserProfile.objects.create(user=user, role='Member')
             login(request, user)
             messages.success(request, 'Registration successful!')
-            return redirect('home')  # Replace with your home view name
+            return redirect('home')
     else:
         form = UserCreationForm()
     
     return render(request, 'relationship_app/register.html', {'form': form})
+
+
+# Book List View
+@login_required
+@permission_required('relationship_app.can_view_book', raise_exception=True)
+def book_list(request):
+    books = Book.objects.all()
+    return render(request, 'relationship_app/book_list.html', {'books': books})
+
+# Add Book View
+@login_required
+@permission_required('relationship_app.can_add_book', raise_exception=True)
+def add_book(request):
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Book added successfully!')
+            return redirect('book_list')
+    else:
+        form = BookForm()
+    return render(request, 'relationship_app/add_book.html', {'form': form})
+
+# Edit Book View
+@login_required
+@permission_required('relationship_app.can_change_book', raise_exception=True)
+def edit_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Book updated successfully!')
+            return redirect('book_list')
+    else:
+        form = BookForm(instance=book)
+    return render(request, 'relationship_app/edit_book.html', {'form': form, 'book': book})
+
+# Delete Book View
+@login_required
+@permission_required('relationship_app.can_delete_book', raise_exception=True)
+def delete_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        book.delete()
+        messages.success(request, 'Book deleted successfully!')
+        return redirect('book_list')
+    return render(request, 'relationship_app/delete_book.html', {'book': book})
+
+# View Book Detail
+@login_required
+@permission_required('relationship_app.can_view_book', raise_exception=True)
+def book_detail(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    return render(request, 'relationship_app/book_detail.html', {'book': book})
+
+# Book management dashboard (combines list with action buttons)
+@login_required
+def book_management(request):
+    books = Book.objects.all()
+    can_add = request.user.has_perm('relationship_app.can_add_book')
+    can_change = request.user.has_perm('relationship_app.can_change_book')
+    can_delete = request.user.has_perm('relationship_app.can_delete_book')
+    
+    context = {
+        'books': books,
+        'can_add': can_add,
+        'can_change': can_change,
+        'can_delete': can_delete,
+    }
+    return render(request, 'relationship_app/book_management.html', context)

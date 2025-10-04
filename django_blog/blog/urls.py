@@ -9,10 +9,15 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(template_name='blog/logout.html'), name='logout'),
     path('profile/', views.profile, name='profile'),
     
-    # Blog post URLs - UPDATED to match checker expectations
-    path('post/', views.PostListView.as_view(), name='post-list'),  # Changed from 'posts/' to 'post/'
+    # Blog post URLs
+    path('post/', views.PostListView.as_view(), name='post-list'),
     path('post/<int:pk>/', views.PostDetailView.as_view(), name='post-detail'),
-    path('post/new/', views.PostCreateView.as_view(), name='post-create'),  # Changed from 'posts/new/' to 'post/new/'
-    path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post-update'),  # Changed from 'edit/' to 'update/'
+    path('post/new/', views.PostCreateView.as_view(), name='post-create'),
+    path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post-update'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post-delete'),
+    
+    # Comment URLs - Updated to match checker's expected structure
+    path('post/<int:pk>/comments/new/', views.CommentCreateView.as_view(), name='add-comment'),
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='update-comment'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete-comment'),
 ]

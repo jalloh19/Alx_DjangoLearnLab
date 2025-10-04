@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'rest_framework',  # Third-party apps
     'api',             # Custom apps
+    'django_filters', # For filtering support
+
 
     # Local apps
     'django.contrib.admin',
@@ -42,6 +44,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+
+# Django REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

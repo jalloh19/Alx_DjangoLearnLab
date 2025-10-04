@@ -18,7 +18,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
 
     # Local apps
-    'blog', 
+    'blog',
+    'taggit',
 
     # Native apps
     'django.contrib.admin',

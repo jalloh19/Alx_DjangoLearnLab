@@ -4,6 +4,17 @@
     <article>
         <h1>{{ post.title }}</h1>
         <p>By {{ post.author }} on {{ post.published_date }}</p>
+        
+        <!-- Display Tags -->
+        {% if post.tags.all %}
+            <p>
+                Tags: 
+                {% for tag in post.tags.all %}
+                    <a href="{% url 'tag-posts' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        {% endif %}
+        
         <p>{{ post.content }}</p>
         {% if user == post.author %}
             <a href="{% url 'post-update' post.pk %}">Edit</a>
@@ -11,11 +22,10 @@
         {% endif %}
     </article>
 
-    <!-- Comments Section -->
+    <!-- Comments Section (keep existing comments code) -->
     <section>
         <h3>Comments ({{ post.comments.count }})</h3>
         
-        <!-- Add Comment Form -->
         {% if user.is_authenticated %}
             <h4>Add a comment:</h4>
             <form method="POST" action="{% url 'add-comment' post.pk %}">
@@ -27,7 +37,6 @@
             <p><a href="{% url 'login' %}">Login</a> to add a comment.</p>
         {% endif %}
 
-        <!-- Comments List -->
         {% for comment in post.comments.all %}
             <div style="border-left: 3px solid #ccc; padding-left: 10px; margin: 10px 0;">
                 <p><strong>{{ comment.author }}</strong> - {{ comment.created_at }}</p>

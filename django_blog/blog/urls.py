@@ -16,8 +16,12 @@ urlpatterns = [
     path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post-update'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post-delete'),
     
-    # Comment URLs - Updated to match checker's expected structure
+    # Comment URLs
     path('post/<int:pk>/comments/new/', views.CommentCreateView.as_view(), name='add-comment'),
     path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='update-comment'),
-    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete-comment'),
+    path('comment/<int:pk>/delete/', views.CommentUpdateView.as_view(), name='delete-comment'),
+    
+    # Tag and Search URLs - FIX THIS LINE:
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='tag-posts'),
+    path('search/', views.PostSearchView.as_view(), name='post-search'),
 ]
